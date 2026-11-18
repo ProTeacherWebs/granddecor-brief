@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Бриф: сайт GrandDecor</title>
+<style>
+:root{--bg:#faf7f5;--card:#fff;--text:#2a2228;--muted:#7a6f76;--accent:#c2416b;--line:#eadfe3;--ok:#2f8f5b}
+@media (prefers-color-scheme:dark){:root{--bg:#1b171a;--card:#262024;--text:#f2ecef;--muted:#a99ca3;--accent:#f06a95;--line:#3a3036;--ok:#5fc48c}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font:16px/1.5 system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+.wrap{max-width:760px;margin:0 auto;padding:24px 16px 140px}
+h1{font-size:1.6rem;margin:0 0 8px}
+.intro{color:var(--muted);margin:0 0 24px}
+section{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px;margin:0 0 16px}
+h2{font-size:1.15rem;margin:0 0 12px;color:var(--accent)}
+.q{margin:0 0 16px}
+.q:last-child{margin:0}
+label{display:block;font-weight:600;margin:0 0 6px}
+.req{color:var(--accent)}
+textarea{width:100%;min-height:64px;padding:10px;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--text);font:inherit;resize:vertical}
+textarea:focus{outline:2px solid var(--accent);border-color:transparent}
+.bar{position:fixed;left:0;right:0;bottom:0;background:var(--card);border-top:1px solid var(--line);padding:10px 16px}
+.bar-in{max-width:760px;margin:0 auto;display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.count{flex:1 1 100%;font-size:.9rem;color:var(--muted)}
+.count b{color:var(--ok)}
+button{border:0;border-radius:10px;padding:10px 14px;font:inherit;font-weight:600;cursor:pointer;background:var(--line);color:var(--text)}
+button.main{background:var(--accent);color:#fff}
+.toast{position:fixed;left:50%;bottom:120px;transform:translateX(-50%);background:var(--text);color:var(--bg);padding:8px 14px;border-radius:8px;opacity:0;transition:.2s;pointer-events:none}
+.toast.show{opacity:1}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Бриф на сайт GrandDecor</h1>
+  <p class="intro">Ответьте на вопросы как удобно, можно коротко. Ответы сохраняются только в этом браузере и никуда не отправляются, пока вы сами не нажмёте «Отправить». <span class="req">*</span> — важные вопросы. Если не знаете ответа, пропустите.</p>
+  <form id="f"></form>
+</div>
+<div class="bar"><div class="bar-in">
+  <div class="count" id="count"></div>
+  <button class="main" id="send" type="button">Отправить в Telegram</button>
+  <button id="copy" type="button">Скопировать</button>
+  <button id="dl" type="button">Скачать .txt</button>
+  <button id="clear" type="button">Очистить</button>
+</div></div>
+<div class="toast" id="toast"></div>
+<script>
+// В файле только вопросы. Ответы хранятся в localStorage браузера клиента.
+var B=[
+["Компания и направления",[
+["*","Какие праздники вы будете организовывать: свадьбы, никох/фотиха-туй, детские дни рождения, корпоративы, юбилеи, выпускные, предложения руки и сердца, другое?"],
+["*","Какое направление главное? С чего хотите начать?"],
+["","Что делаете своей командой, а что через подрядчиков (ведущий, декор, фото, кейтеринг, аниматоры)? Это нужно, чтобы на сайте честно описать, что входит в услугу."]]],
+["Клиенты и география",[
+["*","Кто ваш типичный клиент (возраст, кто заказывает, бюджет)?"],
+["*","Работаете только в Ташкенте или выезжаете в область и другие города?"],
+["","Есть ли у вас свой зал или вы работаете на площадках клиента/партнёров?"]]],
+["Услуги, пакеты и цены",[
+["*","Есть ли готовые пакеты? Как они называются и что в каждый входит?"],
+["*","От какой суммы начинаются цены по каждому направлению? Можно ли показывать цены на сайте?"],
+["*","От чего зависит цена (число гостей, площадка, декор, длительность, программа)?"],
+["","Есть ли отдельные услуги без пакета (только декор, только ведущий, аниматор на час)?"],
+["","Есть ли скидки, акции, сезонные цены?"]]],
+["Сроки и условия",[
+["*","За сколько времени нужно обращаться? Минимальный срок подготовки?"],
+["*","Какая предоплата и как оплачивать (наличные, карта, Click, Payme, перечисление)?"],
+["*","Условия отмены и переноса: что возвращается?"],
+["","Заключаете ли договор? Есть ли гарантии (например, замена ведущего при болезни)?"],
+["","Как проходит работа по шагам: от заявки до праздника?"]]],
+["Отличия",[
+["*","Почему клиенту стоит выбрать вас? Назовите 3–5 причин."]]],
+["Контакты и заявки",[
+["*","Телефоны, адрес офиса (если есть), часы работы."],
+["","Какие данные спрашивать у клиента в заявке (дата, число гостей, бюджет, тип праздника)?"]]],
+["Стиль",[
+["","Есть ли фирменные цвета, шрифты, логотип в векторе (SVG, AI, PDF)?"]]],
+["Узбекская версия",[
+["*","Нужна ли узбекская версия? Латиница, кириллица или обе?"],
+["","На каком языке пишет больше клиентов?"]]],
+["Сроки сайта",[
+["*","Бюджет на сайт и желаемая дата запуска."]]]
+];
+var KEY="granddecor-brief-v2",f=document.getElementById("f"),data={},n=0,total=0;
+try{data=JSON.parse(localStorage.getItem(KEY))||{}}catch(e){}
+B.forEach(function(b,bi){
+  var s=document.createElement("section"),h=document.createElement("h2");
+  h.textContent=(bi+1)+". "+b[0];s.appendChild(h);
+  b[1].forEach(function(q){
+    n++;total++;var id="q"+n,d=document.createElement("div");d.className="q";
+    var l=document.createElement("label");l.htmlFor=id;
+    l.textContent=n+". "+q[1]+" ";
+    if(q[0]){var r=document.createElement("span");r.className="req";r.textContent="*";l.appendChild(r)}
+    var t=document.createElement("textarea");t.id=id;t.value=data[id]||"";
+    t.dataset.block=b[0];t.dataset.q=n+". "+q[1];
+    t.addEventListener("input",function(){data[id]=t.value;save();upd()});
+    d.appendChild(l);d.appendChild(t);s.appendChild(d)});
+  f.appendChild(s)});
+function save(){try{localStorage.setItem(KEY,JSON.stringify(data))}catch(e){}}
+function upd(){var c=0;f.querySelectorAll("textarea").forEach(function(t){if(t.value.trim())c++});
+  document.getElementById("count").innerHTML="Заполнено: <b>"+c+"</b> из "+total}
+function txt(){var out="Бриф: сайт GrandDecor\n",cur="";
+  f.querySelectorAll("textarea").forEach(function(t){
+    if(t.dataset.block!==cur){cur=t.dataset.block;out+="\n== "+cur+" ==\n"}
+    out+="\n"+t.dataset.q+"\n— "+(t.value.trim()||"(нет ответа)")+"\n"});return out}
+function toast(m){var e=document.getElementById("toast");e.textContent=m;e.classList.add("show");setTimeout(function(){e.classList.remove("show")},1800)}
+function copy(s){if(navigator.clipboard)return navigator.clipboard.writeText(s);
+  var a=document.createElement("textarea");a.value=s;document.body.appendChild(a);a.select();document.execCommand("copy");a.remove();return Promise.resolve()}
+document.getElementById("copy").onclick=function(){copy(txt()).then(function(){toast("Скопировано")})};
+document.getElementById("dl").onclick=function(){var a=document.createElement("a");
+  a.href=URL.createObjectURL(new Blob([txt()],{type:"text/plain;charset=utf-8"}));a.download="brief.txt";a.click()};
+document.getElementById("clear").onclick=function(){if(!confirm("Удалить все ответы из этого браузера?"))return;
+  data={};try{localStorage.removeItem(KEY)}catch(e){}f.querySelectorAll("textarea").forEach(function(t){t.value=""});upd()};
+document.getElementById("send").onclick=function(){var s=txt(),mobile=/Android|iPhone|iPad/i.test(navigator.userAgent);
+  if(mobile&&navigator.share){navigator.share({title:"Бриф",text:s}).catch(function(){});return}
+  // Длинный текст не влезает в ссылку t.me: копируем полностью и открываем Telegram
+  copy(s).then(function(){toast("Текст скопирован, вставьте его в чат");
+    window.open("https://t.me/share/url?url="+encodeURIComponent(" ")+"&text="+encodeURIComponent(s.slice(0,1500)),"_blank")})};
+upd();
+</script>
+</body>
+</html>
